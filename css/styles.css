@@ -79,7 +79,7 @@
     left: 40%; */
     width: 16px;
     height: 16px;
-    background-image: url('../assests/unicorn.png');
+    background-image: url('unicorn.png');
     background-position: 0 0;
     background-repeat: no-repeat;
     border: none;

@@ -19,6 +19,11 @@ canvas.height = 500;
 let gameState = 'menu';
 let restingPlatform = null; // tracks which platform (if any) we're currently standing on
 
+let score = 0;
+let lives = 3;
+let highestPlatformY = Infinity;
+let wasFalling = false;
+
 function drawMenu() {
   UNICORN.style.display = 'none';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -38,6 +43,28 @@ function drawMenu() {
   ctx.font = '18px Trebuchet MS';
   ctx.fillText('Play', 200, 275);
 }
+
+function drawGameOverMenu() {
+  UNICORN.style.display = 'none';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#dce9f7';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#b48ecb';
+  ctx.font = '28px Trebuchet MS';
+  ctx.textAlign = 'center';
+  ctx.fillText('Uni-Hop', canvas.width / 2, 180);
+
+  // play button
+  ctx.fillStyle = '#b48ecb';
+  ctx.fillRect(150, 250, 100, 40);
+  ctx.fillStyle = '#fff8fb';
+  ctx.font = '18px Trebuchet MS';
+  ctx.fillText('Play', 200, 275);
+}
+
+
 
 function handleClick(event) {
   if (gameState !== 'menu') return;
@@ -103,6 +130,14 @@ function keyUpHandler(event) {
   }
 }
 
+function updateScoreDisplay() {
+  document.querySelector('.topbar div:last-child').textContent = 'Score: ' + score;
+}
+
+function updateLivesDisplay() {
+  document.querySelector('.rainbows').textContent = '🌈'.repeat(lives)
+}
+
 let cameraOffset = 0;
 
 function update() {
@@ -141,18 +176,40 @@ function update() {
       }
     });
 
+    // Whilst restingPlatform is set, the unicorn sets there
     if (bestPlatform) {
       distance = bestPlatform.y - floor;
       speed = 0;
       restingPlatform = bestPlatform; // now officially resting
+
+      // highest platform ascts as a memory for the best height
+      // the bestPlatform.y < highestPlatformY only passed when you've hit one high than before
+      if(bestPlatform.y < highestPlatformY) {
+          highestPlatformY = bestPlatform.y;
+          score++;
+          updateScoreDisplay();
+        }
     }
   }
 
+  if (lives === 0) {
+    drawGameOverMenu();
+  }
+
   if (distance >= 0) {
+    if (wasFalling) {
+      lives--;
+      updateLivesDisplay();
+    }
     distance = 0;
     speed = 0;
     restingPlatform = null; // ground isn't tracked as a platform, so clear this
+    wasFalling = false;
+  } else {
+    wasFalling = true;
   }
+
+  
 
   positionY = distance;
   newTop = floor + positionY;
@@ -172,7 +229,7 @@ function update() {
   platforms.forEach(platform => {
     platform.element.style.top = (platform.y - cameraOffset) + 'px';
   })
-
+ 
   if (keysPressed.ArrowLeft === true) {
     facingRight = false;
     positionX -= MOVEMENT_SPEED;
