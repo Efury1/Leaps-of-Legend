@@ -1,0 +1,122 @@
+
+  html, body {
+    background: #f7ecf5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  }
+
+  h1 {
+    margin: 0 0 12px;
+    color: #b48ecb;
+  }
+
+  .stage {
+    position: relative;
+    /* width: 800px;
+    height: 450px; */
+    overflow: hidden;
+    border-radius: 1em;
+    box-shadow: 0 8px 24px rgba(180, 142, 203, 0.25);
+  }
+
+  canvas {
+    display: block;
+    height: 500px;
+    width: 400px;
+    box-sizing: border-box;
+    border-radius: 1em;
+  }
+
+  .topbar {
+    height: 44px;
+    background: #fff8fb;
+    align-items: center;
+    font-size: 15px;
+    font-weight: bold;
+    justify-content: center;
+    display: flex;
+    color: #b48ecb;
+  }
+
+  .text {
+    position: relative;
+  }
+
+  .sky__dawn {
+    background: linear-gradient(0deg, #ffe3ec 0%, #dce9f7 100%);
+  }
+
+  .sky__noon {
+    background: linear-gradient(0deg, #dce9f7 0%, #a9c9e8 100%);
+  }
+
+  .sky__dusk {
+    background: linear-gradient(0deg, #f7a8c4 0%, #7d6bb0 100%);
+  }
+
+  .sky__midnight {
+    background: linear-gradient(0deg, #4b3f72 0%, #241f3a 100%);
+  }
+
+ 
+  .rainbows {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    font-size: 20px;
+  }  
+
+  .unicorn {
+    position: absolute;
+    /* top: 270px;
+    left: 40%; */
+    width: 16px;
+    height: 16px;
+    background-image: url('../assests/unicorn.png');
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    border: none;
+    z-index: 1;
+    image-rendering: pixelated;
+    transform-origin: 50% 100%; /*Scale from button center */
+    transform: scale(3);
+  }
+
+  .cloud {
+    height: 70px;
+    aspect-ratio: 1.8;
+    --g: radial-gradient(50% 50%, #000 88%, #0000) no-repeat;
+    mask: var(--g) 100% 100%/30% 60%, var(--g) 70% 0/50% 100%, var(--g) 0 100%/36% 68%,
+          var(--g) 27% 18%/26% 40%, linear-gradient(#000 0 0) bottom/67% 58% no-repeat;
+    background: #fdf1fb;
+    opacity: 0.5;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 20px;
+  }
+
+  .cloud--left {
+    left: 20%;
+    bottom: 160px;
+  }
+
+  .cloud--right {
+    left: auto;
+    right: 20%;
+    transform: translateX(20%);
+    bottom: 300px;
+  }
+
+  .platform {
+    position: absolute;
+    background: #b48ecb;
+    border-radius: 4px;
+  }
