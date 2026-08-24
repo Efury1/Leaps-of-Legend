@@ -1,18 +1,3 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
 build/
-
-# Environment variables
-.env
-
-# Editor/OS files
-.vscode/
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-npm-debug.log*
+node_modules/
+dist/

@@ -1,6 +1,27 @@
+# Uni-Hop
 
-unicron asset, https://rcxno.itch.io/pixel-art-unicorn
-starter game repo https://github.com/lucaspenney/js13k-toolkit
+A browser game built for [js13kGames](https://js13kgames.com/), a web game development
+competition with a strict 13KB size limit. The 2026 jam runs 13 August 13:00 CEST to
+13 September 13:00 CEST. This year's theme: **Unicorns and Rainbows**.
 
-gulp for knowing size
-npx gulp watch --silent
+## Play
+
+Open `src/index.html` in a browser. No build step is required to play locally.
+
+## Development
+
+Built on the [js13k-toolkit](https://github.com/lucaspenney/js13k-toolkit) starter, which
+uses gulp to bundle and check the final size against the 13KB limit.
+
+```bash
+npx gulp build   # bundle and check size against the 13KB limit
+npx gulp watch   # rebuild on file changes during development
+```
+
+## Assets
+
+- Unicorn sprite: [rcxno's pixel art unicorn](https://rcxno.itch.io/pixel-art-unicorn)
+
+## Credits
+
+Starter repo: [lucaspenney/js13k-toolkit](https://github.com/lucaspenney/js13k-toolkit)
