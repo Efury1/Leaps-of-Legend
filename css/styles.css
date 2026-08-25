@@ -41,10 +41,13 @@
     justify-content: center;
     display: flex;
     color: #b48ecb;
+    margin: 10px;
   }
 
   .text {
     position: relative;
+    margin-right: 10px;
+
   }
 
   .sky__dawn {
@@ -69,7 +72,6 @@
     right: 10px;
     display: flex;
     flex-direction: row;
-    gap: 10px;
     font-size: 20px;
   }  
 
