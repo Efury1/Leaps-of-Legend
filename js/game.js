@@ -119,7 +119,8 @@ function checkForFloorHit() {
 // Potions
 // ============================================================
 
-const potions = [];
+// Have has let because we use filter to replace whole array
+ let potions = [];
 
 function createPotionElement(potion) {
   const element = document.createElement('div');
@@ -270,19 +271,6 @@ function stopMusic() {
 // ============================================================
 // MENU SCREENS
 // ============================================================
-// Deterministic star scatter so the menu backdrop reads as a night
-// sky without relying on Math.random (same look every time it draws).
-function drawStars(count) {
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-  for (let i = 0; i < count; i++) {
-    const x = (i * 137.5) % canvas.width;
-    const y = (i * 79.3) % canvas.height;
-    const r = i % 5 === 0 ? 2 : 1;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
 
 // Same deep-space-to-violet gradient used by the sky__space/midnight
 // CSS classes, so the menu and game-over screens feel like the same world.
@@ -292,7 +280,6 @@ function drawMagicalBackground() {
   gradient.addColorStop(1, '#0f0820');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawStars(60);
 }
 
 function drawRoundedRect(x, y, width, height, radius, fillColor, strokeColor) {
@@ -329,7 +316,7 @@ function drawTextOnParchment(text, centerX, centerY, font) {
   ctx.font = font;
   const textWidth = ctx.measureText(text).width;
 
-  // Cotton-candy pink box with a plum border, matching the topbar styling
+  // Pink box with a plum border, matching the topbar styling
   drawRoundedRect(
     centerX - textWidth / 2 - 20,
     centerY - 20,
@@ -483,6 +470,20 @@ function resetGame() {
 }
 
 // ============================================================
+// Objects
+// ============================================================
+// unicorn.x is how far right
+// unicorn.y is how far down
+function isTouching (unicorn, object) {
+  // Find the gap betwenn them
+  const distanceX = unicorn.x - object.x; 
+  const distanceY = unicorn.y - object.y;
+  const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+  return distance < unicorn.radius + object.radius;
+}
+
+
+// ============================================================
 // MAIN LOOP
 // ============================================================
 function update() {
@@ -494,6 +495,7 @@ function update() {
   checkForLanding();
   moveMovingPlatforms();
   maybeSpawnNewPlatform();
+  checkForPotionCollection();
 
   if (lives === 0) {
     gameState = 'gameover';
@@ -508,6 +510,8 @@ function update() {
 
   requestAnimationFrame(update);
 }
+
+// END OF UPDATE MAIN LOOP
 
 function applyGravityIfFalling() {
   if (!currentPlatform) {
@@ -618,8 +622,9 @@ function maybeSpawnNewPlatform() {
 
 }
 
-
-
+// ============================================================
+// Potions
+// ============================================================
 
 function maybeSpawnNewPotion(platform) {
   const width = 160;
@@ -633,12 +638,37 @@ function maybeSpawnNewPotion(platform) {
   createPotionElement(newPotion);
 }
 
+
+function checkForPotionCollection() {
+  potions.forEach(potion => {
+    const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12};
+    const object = { x: potion.x, y: potion.y, radius: 12};
+
+    if(isTouching(unicorn, object)) {
+      score--;
+      updateScoreDisplay();
+      potion.element.remove();
+      /* forEach doens't let you delete form the aray safely mid-loop, therefore we use filter */
+      /* We use fulter to replace the old reference with a whole new array */
+      potions = potions.filter(p => p !== potion);
+    }
+  })
+
+}
+
+
+// ============================================================
+// Platform
+// ============================================================
+
+// Every object or character need to go in her otherwise cameraOffset won't work for the object or person
 function renderPlayerAndPlatforms() {
   const newTop = FLOOR_Y + playerY;
 
   unicornEl.style.left = `${playerX}px`;
   unicornEl.style.top = `${newTop - UNICORN_HEIGHT - cameraOffset}px`;
   unicornEl.style.transform = facingRight ? 'scale(4)' : 'scale(-4, 4)';
+  
 
   if (newTop - CAMERA_MIDDLE < 0) {
     cameraOffset = newTop - CAMERA_MIDDLE;
@@ -648,9 +678,16 @@ function renderPlayerAndPlatforms() {
     platform.element.style.top = (platform.y - cameraOffset) + 'px';
   });
 
+  // Any object with a fixed world y needs to be re-projects to screen space every frame using camera offset
+  potions.forEach(potion => {
+    potion.element.style.top = (potion.y - cameraOffset) + 'px';
+  });
+
   if (princessRevealed) {
     princessEl.style.top = (princessPlatform.y - cameraOffset - 32) + 'px';
   }
+
+  
 }
 
 function applyMovementInput() {
