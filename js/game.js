@@ -183,7 +183,14 @@ function revealPrincessPlatform() {
 function checkForPrincessCollection() {
 
     const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12};
-    const object = { x: princessPlatform.x, y: princessPlatform.y, radius: 12};
+    // use the platform's center as the touch point,
+    // radius that spans the whole platform, so landing anywhere on it
+    // counts as reaching the princess.
+    const object = {
+      x: princessPlatform.x + princessPlatform.width / 2,
+      y: princessPlatform.y,
+      radius: princessPlatform.width / 2
+    };
 
     if(isTouching(unicorn, object)) {
       if(score >= 15) {

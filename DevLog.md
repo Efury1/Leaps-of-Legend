@@ -1,54 +1,50 @@
-19/08/26
-- Keyboard auto repeat typically only runs one key at a time. This is Browser/Os elvel behaviour. 
-- Therefore, we track which key is held in a variable. 
-- Keydown/keyup as a pair is a standard pattern because it tracks the actual physical state of the key
+# Dev notepad: key handling and jump physics
 
-20/08/26
-- Uncaught SyntaxError: Unexpected end of input, this kept happening, so I made sure I had prettier installed
-- Pressed buttons can be defined and initalized with boolean variabled. 
-- Set up key handler, this is a function that handlers the keyup events 
-- if distance is greater then or equal to do we do floor check. 
-but we need cloud logic now. 
-- decided to go with a platform instead of the cloud, because I thought the math might be harder to figure out
-- I did the platforms as an array, so it is easy to change. 
-- Some thing with the platform is you had to think about the jump. and the heightest point. The speed it pushes of the ground is 12, and the gravity is 0.6 (How fast it gets pulled down)
+## 19/08/26 — key handling basics
 
-Square the push 
-In physics, speed energy is not just speed. 
-It is speed times itself. 
-1. 12 x 12 = 144
+1. Auto repeat only tracks one key at a time. This is browser and OS level behaviour.
+2. So we track held keys in a variable.
+3. Keydown and keyup as a pair track the true state of the key.
 
-Double the gravity
-Height uses gravity too. But the formula for
-it has half of it. 
-To cancel that out we double gravity instead
-2. 0.6 x 2 = 1.2
+Takeaway: the browser will not track held keys for you. State has to be tracked by hand.
 
-Divide
-Then dividing across the pull or energy
-3. 144 / 1.2 = 120
+## 20/08/26 — key state and first jump math
 
-So, 120 is the ceiling but to make it easier I picked 90px
+- A syntax error kept showing up (unexpected end of input). Fixed by using prettier.
+- Pressed keys can be stored as boolean variables.
+- A key handler function reads keyup events.
+- Floor check: if distance is greater than or equal to the floor, land.
+- Chose a platform instead of cloud logic, since the math felt easier to work out.
+- Platforms are stored as an array, so new ones are easy to add.
 
-- Need to compare the unicorn to see if it matches anything in the platform array. 
-The unicorn is only above a platform if its x position ovrlatp the platforms x range. 
+### Jump height math
 
-and the platform is platform.x to platform.x + platform.width.
+Goal: find how high the jump can go, using push speed and gravity.
 
-- For platform I had to ask myself if platofrm/x = 220 and platform.wdith = 100. That means the platform stretches form x = 220 to x = 320. 
-That means is positionX = 250 the unicorn is over the platform/.positionX > 220 && positionX < 320. but we nede to make it work for all platofrms.
-positionX > platform.x && positionX < platform.x + platform.width
-- (390 + distance) > platform.y), it can't be qual because every 0.6 stacks up and adds 0.6 a decimal. so distance inherits the decimal. So, it is never a clean numebr.
+1. Square the push. Push speed is 12, so 12 x 12 = 144.
+2. Double the gravity. Gravity is 0.6, so 0.6 x 2 = 1.2.
+3. Divide the square by the doubled gravity. 144 / 1.2 = 120.
 
-24/08/2026
-If unicorn goes abvoe middle y position scroll down.
-Once restingPlatform is set, gravity gets skipped. This is so no drift is there to accidently invalidate the ladning
+Takeaway: 120px is the highest the jump can go. 90px was picked in practice, since it felt right for gameplay.
 
+*See the diagram below for how push and gravity shape the jump arc.*
 
-// understanding 
-gravity speed growns by 0.6/frame every frame
-requestAnimationFrame() method tells the browser that you wish to perform an animation.
+### Checking if the unicorn is over a platform
 
-per frame per frame. Gravity is a square. Velocity is a vector of your direction and your speed. 
+- A platform spans from `platform.x` to `platform.x + platform.width`.
+- Example: `platform.x = 220`, `platform.width = 100`. The platform covers x = 220 to x = 320.
+- So if `positionX = 250`, the check is `positionX > 220 && positionX < 320`.
+- General rule for any platform: `positionX > platform.x && positionX < platform.x + platform.width`.
+- Landing check: `(390 + distance) > platform.y`. This can't use equals, since gravity adds 0.6 each frame, and 0.6 keeps stacking into a decimal. So distance is never a clean number.
 
-When I have gravity its adding velocity in vector. 
+## 24/08/26 — scrolling and landing
+
+- If the unicorn goes above the middle y position, scroll down.
+- Once `restingPlatform` is set, gravity is skipped. This stops drift that could break the landing.
+
+### Understanding gravity and motion
+
+- Gravity speed grows by 0.6 per frame, every frame.
+- `requestAnimationFrame()` tells the browser you want to run an animation.
+- Gravity is a plain number (a scalar). Velocity is a vector, it has direction and speed.
+- Adding gravity each frame adds to the velocity vector.
