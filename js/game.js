@@ -15,8 +15,6 @@ let musicRepeatTimer = null;
 const GAME_TUNE = "cefhjhfec000fhjlmljhjhfec000";
 const GAME_NOTE_LEN = 0.25;
 
-
-
 // ============================================================
 // Facts
 // ============================================================
@@ -180,6 +178,21 @@ function revealPrincessPlatform() {
   princessEl.style.left = princessPlatform.x + (princessPlatform.width / 2 - 16) + 'px';
   princessEl.style.display = 'block';
 }
+
+
+function checkForPrincessCollection() {
+
+    const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12};
+    const object = { x: princessPlatform.x, y: princessPlatform.y, radius: 12};
+
+    if(isTouching(unicorn, object)) {
+      if(score >= 15) {
+        gameState = 'winning';
+        drawWinningMenu();
+      }
+    }
+}
+
 
 // ============================================================
 // Sky
@@ -364,6 +377,28 @@ function drawMenu() {
   princessEl.style.display = 'none';
 }
 
+
+function drawWinningMenu() {
+  unicornEl.style.display = 'none';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawMagicalBackground();
+  drawTitle('Leaps of Legend', 170);
+  drawTextOnParchment(
+    'The princess is alive because of you, you won.',
+    canvas.width / 2,
+    250,
+    '20px Trebuchet MS',
+  );
+
+  drawMenuButton('Play again', 340);
+
+  platforms.forEach(platform => {
+    platform.element.style.display = 'none';
+  });
+  princessEl.style.display = 'none';
+}
+
 function drawGameOverMenu() {
   unicornEl.style.display = 'none';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -401,7 +436,7 @@ function updateLivesDisplay() {
 // INPUT
 // ============================================================
 function handleClick(event) {
-  if (gameState !== 'menu' && gameState !== 'gameover') return;
+  if (gameState !== 'menu' && gameState !== 'gameover' && gameState !== 'winning') return;
 
   const rect = canvas.getBoundingClientRect();
   const clickX = event.clientX - rect.left;
@@ -496,11 +531,18 @@ function update() {
   moveMovingPlatforms();
   maybeSpawnNewPlatform();
   checkForPotionCollection();
+  checkForPrincessCollection();
 
   if (lives === 0) {
     gameState = 'gameover';
     stopMusic();
     drawGameOverMenu();
+    return;
+  }
+
+  if (gameState === 'winning') {
+    stopMusic();
+    drawWinningMenu();
     return;
   }
 
