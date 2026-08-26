@@ -1,124 +1,158 @@
+html, body {
+  background: #1f1033;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+}
 
-  html, body {
-    background: #f7ecf5;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
-  }
+h1 {
+  margin: 0 0 12px;
+  color: #ffd76e;
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 0 #3a1a5c;
+}
 
-  h1 {
-    margin: 0 0 12px;
-    color: #b48ecb;
-  }
+.stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.4em;
+  border: 4px solid #5b2f8a;
+  box-shadow: 0 8px 24px rgba(60, 20, 90, 0.5);
+}
 
-  .stage {
-    position: relative;
-    /* width: 800px;
-    height: 450px; */
-    overflow: hidden;
-    border-radius: 1em;
-    box-shadow: 0 8px 24px rgba(180, 142, 203, 0.25);
-  }
+canvas {
+  display: block;
+  height: 700px;
+  width: 900px;
+  box-sizing: border-box;
+  border-radius: 1em;
+}
 
-  canvas {
-    display: block;
-    height: 500px;
-    width: 400px;
-    box-sizing: border-box;
-    border-radius: 1em;
-  }
+.topbar {
+  height: 44px;
+  background: #ffe6f5;
+  align-items: center;
+  font-size: 15px;
+  font-weight: bold;
+  justify-content: center;
+  display: flex;
+  color: #8a2f6b;
+  margin: 10px;
+  border: 2px solid #5b2f8a;
+}
 
-  .topbar {
-    height: 44px;
-    background: #fff8fb;
-    align-items: center;
-    font-size: 15px;
-    font-weight: bold;
-    justify-content: center;
-    display: flex;
-    color: #b48ecb;
-    margin: 10px;
-  }
+.text {
+  position: relative;
+  margin-right: 10px;
+}
 
-  .text {
-    position: relative;
-    margin-right: 10px;
+.sky__space {
+  background: linear-gradient(0deg, #0f0820 0%, #2d1b4e 100%);
+}
 
-  }
+.sky__midnight {
+  background: linear-gradient(0deg, #2d1b4e 0%, #5b2f8a 100%);
+}
 
-  .sky__dawn {
-    background: linear-gradient(0deg, #ffe3ec 0%, #dce9f7 100%);
-  }
+.sky__night {
+  background: linear-gradient(0deg, #5b2f8a 0%, #b088f9 100%);
+}
 
-  .sky__noon {
-    background: linear-gradient(0deg, #dce9f7 0%, #a9c9e8 100%);
-  }
+.sky__evening {
+  background: linear-gradient(0deg, #b088f9 0%, #ff9ecb 100%);
+}
 
-  .sky__dusk {
-    background: linear-gradient(0deg, #f7a8c4 0%, #7d6bb0 100%);
-  }
+.sky__dusk {
+  background: linear-gradient(0deg, #ff9ecb 0%, #ffe08a 100%);
+}
 
-  .sky__midnight {
-    background: linear-gradient(0deg, #4b3f72 0%, #241f3a 100%);
-  }
+.sky__afternoon {
+  background: linear-gradient(0deg, #ffe08a 0%, #bfe3ff 100%);
+}
 
- 
-  .rainbows {
-    position: absolute;
-    right: 10px;
-    display: flex;
-    flex-direction: row;
-    font-size: 20px;
-  }  
+.sky__noon {
+  background: linear-gradient(0deg, #bfe3ff 0%, #d8ecff 100%);
+}
 
-  .unicorn {
-    position: absolute;
-    /* top: 270px;
-    left: 40%; */
-    width: 16px;
-    height: 16px;
-    background-image: url('unicorn.png');
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    border: none;
-    z-index: 1;
-    image-rendering: pixelated;
-    transform-origin: 50% 100%; /*Scale from button center */
-    transform: scale(3);
-  }
+.sky__morning {
+  background: linear-gradient(0deg, #d8ecff 0%, #ffcfe8 100%);
+}
 
-  .cloud {
-    height: 70px;
-    aspect-ratio: 1.8;
-    --g: radial-gradient(50% 50%, #000 88%, #0000) no-repeat;
-    mask: var(--g) 100% 100%/30% 60%, var(--g) 70% 0/50% 100%, var(--g) 0 100%/36% 68%,
-          var(--g) 27% 18%/26% 40%, linear-gradient(#000 0 0) bottom/67% 58% no-repeat;
-    background: #fdf1fb;
-    opacity: 0.5;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 20px;
-  }
+.sky__dawn {
+  background: linear-gradient(0deg, #ffcfe8 0%, #ffe9d6 100%);
+}
 
-  .cloud--left {
-    left: 20%;
-    bottom: 160px;
-  }
+.rainbows {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  flex-direction: row;
+  font-size: 20px;
+}
 
-  .cloud--right {
-    left: auto;
-    right: 20%;
-    transform: translateX(20%);
-    bottom: 300px;
-  }
+/* This could of been done with sprite spliting */
+.unicorn {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-image: url('unicorn.png');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  border: none;
+  z-index: 1;
+  image-rendering: pixelated;
+  transform-origin: 50% 100%; /*Scale from button center */
+  transform: scale(4);
+}
 
-  .platform {
-    position: absolute;
-    background: #b48ecb;
-    border-radius: 4px;
-  }
+.princess {
+  position: absolute;
+  width: 16px;
+  height: 40px;
+  background-image: url('princess1.png');
+  background-repeat: no-repeat;
+  transform-origin: 50% 100%;
+  transform: scale(2);
+}
+
+.potion {
+  position: absolute;
+  font-size: 24px;
+}
+
+.cloud {
+  height: 90px;
+  aspect-ratio: 1.8;
+  --g: radial-gradient(50% 50%, #000 88%, #0000) no-repeat;
+  mask: var(--g) 100% 100%/30% 60%, var(--g) 70% 0/50% 100%, var(--g) 0 100%/36% 68%,
+        var(--g) 27% 18%/26% 40%, linear-gradient(#000 0 0) bottom/67% 58% no-repeat;
+  background: #ffffff;
+  opacity: 0.4;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 20px;
+}
+
+.cloud--left {
+  left: 15%;
+  bottom: 220px;
+}
+
+.cloud--right {
+  left: auto;
+  right: 15%;
+  transform: translateX(20%);
+  bottom: 420px;
+}
+
+.platform {
+  position: absolute;
+  background: #f0e6ff;
+  border: 2px solid #8a5fc9;
+  border-radius: 2px;
+}

@@ -43,3 +43,12 @@ positionX > platform.x && positionX < platform.x + platform.width
 24/08/2026
 If unicorn goes abvoe middle y position scroll down.
 Once restingPlatform is set, gravity gets skipped. This is so no drift is there to accidently invalidate the ladning
+
+
+// understanding 
+gravity speed growns by 0.6/frame every frame
+requestAnimationFrame() method tells the browser that you wish to perform an animation.
+
+per frame per frame. Gravity is a square. Velocity is a vector of your direction and your speed. 
+
+When I have gravity its adding velocity in vector. 
