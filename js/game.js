@@ -118,6 +118,11 @@ function checkForFloorHit() {
     if (wasFalling) {
       lives--;
       updateLivesDisplay();
+      // sound + screen shake on losing a life 
+      playBlip(220, 0.3);
+      const stage = document.querySelector('.stage');
+      stage.classList.add('shake');
+      setTimeout(() => stage.classList.remove('shake'), 300);
     }
     verticalOffset = 0;
     verticalVelocity = 0;
@@ -193,6 +198,7 @@ function bubble() {
     }
 
     bubbleTimeout = setTimeout(() => {
+      console.log('removeBubble firing');
       removeBubble();
     }, 5000);
 }
@@ -362,6 +368,23 @@ function stopMusic() {
     audioCtx.close();
     audioCtx = null;
   }
+}
+
+// Reuses the music's audio context ---
+// Plays a single soft tone. Only fires once music has started (audioCtx
+// exists), so jump/land sounds before Play is pressed just get skipped.
+function playBlip(freq, duration = 0.12) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.setTargetAtTime(0.0001, audioCtx.currentTime + 0.05, 0.05);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
 }
 
 // ============================================================
@@ -543,6 +566,19 @@ function updateLivesDisplay() {
   document.querySelector('.rainbows').textContent = '🌈'.repeat(lives);
 }
 
+// The floating "+1" score popup 
+// Spawns a short-lived DOM element at a given screen position and
+// lets the CSS animation (floatUp) fade/rise it, then removes itself.
+function showScorePopup(x, y) {
+  const el = document.createElement('div');
+  el.className = 'score-popup';
+  el.textContent = '+1';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  document.querySelector('.stage').appendChild(el);
+  setTimeout(() => el.remove(), 600);
+}
+
 // ============================================================
 // INPUT
 // ============================================================
@@ -604,6 +640,7 @@ function keyDownHandler(event) {
     if (verticalVelocity === 0) {
       verticalVelocity = -15;
       currentPlatform = null; // jumping off whatever we were standing on
+      playBlip(660, 0.1); // jump sound
     }
   }
   else if (event.key == 'Shift' || event.shiftKey) {
@@ -764,6 +801,16 @@ function checkForLanding() {
     nextSpawnY = landedPlatform.y;
     updateScoreDisplay();
     updateSkyForHeight();
+
+    // Landing flash
+    unicornEl.style.filter = 'brightness(1.6)';
+    setTimeout(() => { unicornEl.style.filter = ''; }, 120);
+
+    // landing sound 
+    playBlip(880, 0.15);
+
+    // popup score
+    showScorePopup(playerX, FLOOR_Y + playerY - cameraOffset - UNICORN_HEIGHT - 20);
 
     if (score === PRINCESS_SCORE_THRESHOLD && !princessRevealed) {
       revealPrincessPlatform();
