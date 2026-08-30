@@ -183,8 +183,8 @@ function revealPrincessPlatform() {
 function checkForPrincessCollection() {
 
     const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12};
-    // use the platform's center as the touch point,
-    // radius that spans the whole platform, so landing anywhere on it
+    // use the platform's center (not its left edge) as the touch point,
+    // and a radius that spans the whole platform, so landing anywhere on it
     // counts as reaching the princess.
     const object = {
       x: princessPlatform.x + princessPlatform.width / 2,
@@ -578,6 +578,8 @@ function checkStillOnCurrentPlatform() {
 
   if (!stillOnPlatform) {
     currentPlatform = null; // walked off the edge, start falling again
+  } else if (currentPlatform.isMoving === true) {
+    playerX += MOVING_PLATFORM_SPEED * currentPlatform.moveDirection;
   }
 }
 
