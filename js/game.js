@@ -133,6 +133,25 @@ function createPotionElement(potion) {
 potions.forEach(createPotionElement);
 
 // ============================================================
+// Unicorn Bubble
+// ============================================================
+const bubbleEl = document.createElement('div');
+
+function bubble() {
+    const newBubble = FLOOR_Y + playerY;
+    bubbleEl.className = 'bubbleEl';
+    // bubbleEl.style.left = `${playerX - 50}px`; /* We do minus 50 because the circle is 100px, and we want the unicorn to sit in the middele */
+    // bubbleEl.style.top = `${newBubble - UNICORN_HEIGHT - cameraOffset - 50}px`;
+    document.querySelector('.stage').appendChild(bubbleEl);
+
+    /*Add the dot for the bubble */
+    if (!bubbleEl.querySelector('.bubbleDit')) {
+      const dot = document.createElement('div');
+      dot.className = 'bubbleDot';
+      bubbleEl.appendChild(dot);
+    }
+}
+// ============================================================
 // PRINCESS PLATFORM — special fixed platform, revealed at score 19
 // ============================================================
 const PRINCESS_SCORE_THRESHOLD = 15;
@@ -183,8 +202,8 @@ function revealPrincessPlatform() {
 function checkForPrincessCollection() {
 
     const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12};
-    // use the platform's center (not its left edge) as the touch point,
-    // and a radius that spans the whole platform, so landing anywhere on it
+    // use the platform's center as the touch point,
+    // radius that spans the whole platform, so landing anywhere on it
     // counts as reaching the princess.
     const object = {
       x: princessPlatform.x + princessPlatform.width / 2,
@@ -484,6 +503,9 @@ function keyDownHandler(event) {
       currentPlatform = null; // jumping off whatever we were standing on
     }
   }
+  else if (event.key == 'Shift' || event.shiftKey) {
+     bubble();
+  }
 }
 
 function keyUpHandler(event) {
@@ -695,7 +717,10 @@ function checkForPotionCollection() {
     const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12};
     const object = { x: potion.x, y: potion.y, radius: 12};
 
-    if(isTouching(unicorn, object)) {
+    if(bubbleEl.parentElement) {
+      return;
+    }
+    else if(isTouching(unicorn, object)) {
       score--;
       updateScoreDisplay();
       potion.element.remove();
@@ -738,6 +763,10 @@ function renderPlayerAndPlatforms() {
     princessEl.style.top = (princessPlatform.y - cameraOffset - 32) + 'px';
   }
 
+  if (bubbleEl.parentElement) {
+    bubbleEl.style.left = `${playerX - 50}px`;
+    bubbleEl.style.top = `${newTop - UNICORN_HEIGHT - cameraOffset - 50}px`;
+  }
   
 }
 
@@ -758,3 +787,4 @@ function applyMovementInput() {
 canvas.addEventListener('click', handleClick);
 window.addEventListener('keydown', keyDownHandler);
 window.addEventListener('keyup', keyUpHandler);
+window.addEventListener('keydown', keyDownHandler);
