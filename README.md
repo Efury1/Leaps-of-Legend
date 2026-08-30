@@ -4,6 +4,14 @@ A browser game built for [js13kGames](https://js13kgames.com/), a web game devel
 competition with a strict 13KB size limit. The 2026 jam runs 13 August 13:00 CEST to
 13 September 13:00 CEST. This year's theme: **Unicorns and Rainbows**.
 
+## Screenshots
+
+### In Game
+![In Game screenshot](inGame.png)
+
+### Menu
+![Game menu screenshot](DrawMenu.png)
+
 ## Play
 
 Open `src/index.html` in a browser. No build step is required to play locally.
