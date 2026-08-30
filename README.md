@@ -33,8 +33,6 @@ Open `src/index.html` in a browser. No build step is required to play locally.
 
 Guide the unicorn through the level, collect enough **Alicorn Points**, and reach the princess. Once you have **15 Alicorn Points**, reach the princess to rescue her and win the game.
 
-Use the **Shift** ability carefully — it can protect you from position-based effects, but it comes at the cost of your score.
-
 ## Development
 
 Built on the [js13k-toolkit](https://github.com/lucaspenney/js13k-toolkit) starter, which uses Gulp to bundle the game and check the final size against the 13KB limit.
