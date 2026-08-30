@@ -18,18 +18,6 @@ const GAME_TUNE = "cefhjhfec000fhjlmljhjhfec000"; // each letter is a note, '0' 
 const GAME_NOTE_LEN = 0.25;         // seconds per note
 
 // ============================================================
-// Facts
-// ============================================================
-// Currently unused elsewhere in the file, but kept here as data
-// for a possible "unicorn facts" collectible feature.
-facts = [
-  {height: 10, text: "Ancient Greeks thought unicorns were real animals from India.", collected: false},
-  {height: 25, text: "People once sold narwhal tusks as unicorn horns for medicine.", collected: false},
-  {height: 50, text: "Old Bibles once called a wild ox a unicorn by mistake.", collected: false},
-  {height: 100, text: "Scotland still uses the unicorn as its national symbol today.", collected: false}
-]
-
-// ============================================================
 // DOM REFERENCES
 // ============================================================
 const canvas = document.getElementById('gameCanvas');
@@ -55,26 +43,25 @@ unicornImg.src = 'unicorn.png';
 // GAME STATE
 // ============================================================
 // gameState controls which "screen" is active: 'menu', 'playing',
-// 'gameover', or 'winning'. The main loop and click handler both
-// check this to decide what to do.
+// 'gameover', or 'winning'. 
 let gameState = 'menu';
 
 let playerX = 450;      // player's horizontal position in world space
 let playerY = 0;        // player's vertical position, mirrors verticalOffset
 let facingRight = true; // flips the sprite when moving left
 
-let verticalOffset = 0;   // how far the player has moved from the floor line (negative = up)
+let verticalOffset = 0;   // how far the player has moved from the floor line (negative = up) 
 let verticalVelocity = 0; // current vertical speed (negative = moving up, positive = falling)
 
-let currentPlatform = null; // the platform object the player is standing on, if any
+let currentPlatform = null; // the platform object the player is standing on (if any)
 let cameraOffset = 0;       // how far the camera has scrolled up as the player climbs
 
-let score = 0;                    // "Alicorn Points" shown in the topbar
+let alicornPoints = 0;            // Points in topbar
 let lives = 3;                    // shown as rainbow emoji, lost when you fall to the floor
-let highestPlatformY = Infinity;  // tracks the highest platform reached, used for scoring/sky/spawning
+let highestPlatformY = Infinity;  // tracks the highest platform reached, we need this for scoring/sky/spawning
 let wasFalling = false;           // used to tell "still standing on the floor" apart from "just landed hard"
 
-let nextSpawnY = 260;         // once the highest platform reaches this height, spawn a new one above it
+let nextSpawnY = 260;         // once the highest platform reaches this height, we want to spawn a new one above it
 let newPlatformSpawned = false; // guards against spawning multiple platforms for the same climb
 
 // Tracks which arrow keys are currently held down, so movement
@@ -118,8 +105,7 @@ function checkForFloorHit() {
     if (wasFalling) {
       lives--;
       updateLivesDisplay();
-      // sound + screen shake on losing a life 
-      playBlip(220, 0.3);
+      playBlip(220, 0.3); // sound + screen shake on losing a life 
       const stage = document.querySelector('.stage');
       stage.classList.add('shake');
       setTimeout(() => stage.classList.remove('shake'), 300);
@@ -137,8 +123,8 @@ function checkForFloorHit() {
 // ============================================================
 // Potions
 // ============================================================
-// Potions are the "bad" pickup: touching one costs a point.
-// Using 'let' (not 'const') because we reassign this array
+// Potions are bar to pickup
+// Using 'let' because we reassign this array
 // whenever we filter a collected potion out of it.
 let potions = [];
 
@@ -157,16 +143,12 @@ potions.forEach(createPotionElement);
 // ============================================================
 // Unicorn Bubble
 // ============================================================
-// A speech-bubble effect shown when the player presses Shift,
-// as if the unicorn is "talking". While it's showing, potions
-// don't cost points (see checkForPotionCollection). Reused as a
-// single DOM element rather than creating a new one every time.
+// A speech-bubble effect shown when the player presses Shift
 const bubbleEl = document.createElement('div');
 
 let bubbleTimeout = null; // handle for the auto-hide timer, null when no bubble is active
 
-// Hides the bubble and clears the timer handle so bubble() can
-// tell "no timer running" apart from "timer already fired".
+// Hides the bubble and clears the timer handle so bubble() disappears
 function removeBubble() {
   bubbleEl.remove();
   bubbleTimeout = null;
@@ -175,10 +157,6 @@ function removeBubble() {
 function bubble() {
     const newBubble = FLOOR_Y + playerY;
     bubbleEl.className = 'bubbleEl';
-    // Positioning is currently handled in renderPlayerAndPlatforms()
-    // every frame instead of here, so these two lines are commented out.
-    // bubbleEl.style.left = `${playerX - 50}px`; /* minus 50 because the circle is 100px, centering the unicorn */
-    // bubbleEl.style.top = `${newBubble - UNICORN_HEIGHT - cameraOffset - 50}px`;
     document.querySelector('.stage').appendChild(bubbleEl);
 
     // Add the little pointer/dot for the speech bubble, once.
@@ -190,9 +168,6 @@ function bubble() {
 
     // If Shift is pressed again while a bubble is already showing,
     // clear the earlier timer first. Otherwise the FIRST timer
-    // would still fire on schedule and hide the bubble early,
-    // cutting the potion-immunity window short instead of giving
-    // a full fresh 5 seconds from the latest press.
     if (bubbleTimeout) {
       clearTimeout(bubbleTimeout);
     }
@@ -266,7 +241,7 @@ function checkForPrincessCollection() {
   };
 
   if (isTouching(unicorn, object)) {
-    if (score >= 15) {
+    if (alicornPoints >= 15) {
       gameState = 'winning';
       drawWinningMenu();
     }
@@ -470,8 +445,8 @@ function drawMenuButton(label, y) {
   ctx.fillText(label, canvas.width / 2, y + 32);
 }
 
-// The main menu screen: title, a short blurb, a line per control,
-// and the Play button. Also hides all the DOM platforms/princess
+// The main menu screen: title, goal, scoring rules, controls, and
+// the Play button. Also hides all the DOM platforms/princess
 // so they don't show through behind the canvas menu.
 //
 // IMPORTANT: the Play button is drawn at y = 420 here. handleClick
@@ -482,20 +457,24 @@ function drawMenu() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawMagicalBackground();
-  drawTitle('Leaps of Legend', 130);
+  drawTitle('Leaps of Legend', 100);
 
+  // Goal, stated up front in one line.
   drawTextOnParchment(
-    'Climb the platforms to reach the princess and save her.',
+    'Climb platform to platform and reach the princess.',
     canvas.width / 2,
-    190,
+    150,
     '18px Trebuchet MS',
   );
 
-  // One instruction per line, spaced 40px apart.
-  drawTextOnParchment('Left / Right arrows: move', canvas.width / 2, 250, '16px Trebuchet MS');
-  drawTextOnParchment('Up arrow: jump', canvas.width / 2, 290, '16px Trebuchet MS');
-  drawTextOnParchment('Shift: talk to your unicorn', canvas.width / 2, 330, '16px Trebuchet MS');
-  drawTextOnParchment('Avoid potions, they cost points', canvas.width / 2, 370, '16px Trebuchet MS');
+  // Scoring rules, grouped together so cause -> effect is clear.
+  drawTextOnParchment('+1 point per new platform reached', canvas.width / 2, 200, '15px Trebuchet MS');
+  drawTextOnParchment('-1 point for touching a potion 🧪', canvas.width / 2, 250, '15px Trebuchet MS');
+  drawTextOnParchment('Reach 15 points to reveal the princess', canvas.width / 2, 300, '15px Trebuchet MS');
+  drawTextOnParchment('Falling costs a life 🌈, lose all 3 and it\'s over', canvas.width / 2, 350, '15px Trebuchet MS');
+
+  // Controls, grouped separately from the rules above.
+  drawTextOnParchment('← → move   ↑ jump   Shift talk to unicorn', canvas.width / 2, 400, '15px Trebuchet MS');
 
   drawMenuButton('Play', 420);
 
@@ -541,7 +520,7 @@ function drawGameOverMenu() {
   ctx.fillStyle = '#ffe6f5';
   ctx.font = '24px Trebuchet MS';
   ctx.textAlign = 'center';
-  ctx.fillText('Alicorn Score: ' + score, canvas.width / 2, 280);
+  ctx.fillText('Alicorn Score: ' + alicornPoints, canvas.width / 2, 280);
 
   drawMenuButton('Play again', 320);
 
@@ -559,7 +538,7 @@ drawMenu(); // show the menu as soon as everything above is ready
 // These update the plain-HTML topbar (score/lives), separate from
 // the canvas-drawn menus above.
 function updateScoreDisplay() {
-  document.querySelector('.topbar div:last-child').textContent = 'Alicorn Points: ' + score;
+  document.querySelector('.topbar div:last-child').textContent = 'Alicorn Points: ' + alicornPoints;
 }
 
 function updateLivesDisplay() {
@@ -667,7 +646,7 @@ function resetGame() {
   verticalOffset = 0;
   verticalVelocity = 0;
   currentPlatform = null;
-  score = 0;
+  alicornPoints = 0;
   lives = 3;
   highestPlatformY = Infinity;
   wasFalling = false;
@@ -796,7 +775,7 @@ function checkForLanding() {
   // rack up extra points.
   if (landedPlatform.y < highestPlatformY) {
     highestPlatformY = landedPlatform.y;
-    score++;
+    alicornPoints++;
     newPlatformSpawned = false;
     nextSpawnY = landedPlatform.y;
     updateScoreDisplay();
@@ -812,7 +791,7 @@ function checkForLanding() {
     // popup score
     showScorePopup(playerX, FLOOR_Y + playerY - cameraOffset - UNICORN_HEIGHT - 20);
 
-    if (score === PRINCESS_SCORE_THRESHOLD && !princessRevealed) {
+    if (alicornPoints === PRINCESS_SCORE_THRESHOLD && !princessRevealed) {
       revealPrincessPlatform();
     }
   }
@@ -904,7 +883,7 @@ function checkForPotionCollection() {
       return; // bubble active: immune to potions this frame
     }
     else if (isTouching(unicorn, object)) {
-      score--;
+      alicornPoints--;
       updateScoreDisplay();
       potion.element.remove();
       // forEach doesn't let you safely delete from the array
