@@ -1,7 +1,5 @@
 // ============================================================
-// CONFIG — rescaled for a 900x700 desktop canvas
-// All the tunable numbers for the game live up here so they're
-// easy to find and adjust in one place.
+// Constants and variables 
 // ============================================================
 const MOVEMENT_SPEED = 7;           // pixels per frame the unicorn moves left/right
 const GRAVITY = 0.7;                // how fast falling speed increases each frame
@@ -480,9 +478,16 @@ function drawMenu() {
 
   drawMenuButton('Play', 420);
 
+  // Hide characters and objects until game starts
+
   platforms.forEach(platform => {
     platform.element.style.display = 'none';
   });
+
+  potions.forEach(potion => {
+    potion.element.style.display = 'none';
+  });
+
   princessEl.style.display = 'none';
 }
 
@@ -507,6 +512,11 @@ function drawWinningMenu() {
   platforms.forEach(platform => {
     platform.element.style.display = 'none';
   });
+
+  potions.forEach(potion => {
+    potion.element.style.display = 'none';
+  });
+
   princessEl.style.display = 'none';
 }
 
@@ -529,6 +539,11 @@ function drawGameOverMenu() {
   platforms.forEach(platform => {
     platform.element.style.display = 'none';
   });
+
+  potions.forEach(potion => {
+    potion.element.style.display = 'none';
+  });
+
   princessEl.style.display = 'none';
 }
 
