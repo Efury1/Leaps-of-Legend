@@ -1,3 +1,4 @@
+
 html, body {
   background: #1f1033;
   display: flex;
@@ -16,34 +17,34 @@ h1 {
   text-shadow: 1px 1px 0 #3a1a5c;
 }
 
-.muttering {
-  position: absolute;
-  color: #ffd76e;
-  font-weight: bold;
-  font-size: 18px;
-  text-shadow: 1px 1px 0 #5b2f8a;
-  pointer-events: none;
-  animation: floatUp 4s ease-out forwards;
-  z-index: 2;
-}
-
 .stage {
   position: relative;
+  width: 900px;
+  height: 700px;
   overflow: hidden;
   border-radius: 0.4em;
   border: 4px solid #5b2f8a;
   box-shadow: 0 8px 24px rgba(60, 20, 90, 0.5);
+  box-sizing: border-box;
 }
 
 canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: block;
-  height: 700px;
-  width: 900px;
   box-sizing: border-box;
-  border-radius: 1em;
+  border-radius: 0;
+  z-index: 0;
 }
 
 .topbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
   height: 44px;
   background: #ffe6f5;
   align-items: center;
@@ -52,11 +53,11 @@ canvas {
   justify-content: space-between;
   display: flex;
   color: #8a2f6b;
-  margin: 10px;
   padding: 0 12px;
   border: 2px solid #5b2f8a;
   gap: 12px;
   box-sizing: border-box;
+  z-index: 1000;
 }
 
 .text {
@@ -68,6 +69,14 @@ canvas {
   position: relative;
   white-space: nowrap;
   text-align: right;
+}
+
+.rainbows {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .sky__space {
@@ -106,28 +115,31 @@ canvas {
   background: linear-gradient(0deg, #ffcfe8 0%, #ffe9d6 100%);
 }
 
-.rainbows {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  font-size: 20px;
-  flex-shrink: 0;
-}
+/* ============================================================
+   UNICORN
+   ============================================================ */
 
-/* This could of been done with sprite spliting */
 .unicorn {
   position: absolute;
   width: 16px;
   height: 16px;
+
   background-image: url('unicorn.png');
   background-position: 0 0;
   background-repeat: no-repeat;
+
   border: none;
+
   z-index: 1;
+
   image-rendering: pixelated;
-  transform-origin: 50% 100%; /*Scale from button center */
+  transform-origin: 50% 100%;
   transform: scale(4);
 }
+
+/* ============================================================
+   PRINCESS
+   ============================================================ */
 
 .princess {
   position: absolute;
@@ -137,11 +149,30 @@ canvas {
   background-repeat: no-repeat;
   transform-origin: 50% 100%;
   transform: scale(2);
+  z-index: 1;
+}
+
+.platform {
+  position: absolute;
+  background: #f0e6ff;
+  border: 2px solid #8a5fc9;
+  border-radius: 2px;
+  z-index: 1;
 }
 
 .potion {
   position: absolute;
   font-size: 24px;
+  z-index: 1;
+}
+
+.bubbleEl {
+  width: 100px;
+  aspect-ratio: 1;
+  position: absolute;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  z-index: 2;
 }
 
 .bubbleDot {
@@ -154,27 +185,23 @@ canvas {
   right: 20px;
 }
 
-.bubbleEl {
-  width: 100px;
-  aspect-ratio: 1; /* Ensure width and height stay equal */
-  position: absolute;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  
-} 
-
 .cloud {
   height: 90px;
   aspect-ratio: 1.8;
   --g: radial-gradient(50% 50%, #000 88%, #0000) no-repeat;
-  mask: var(--g) 100% 100%/30% 60%, var(--g) 70% 0/50% 100%, var(--g) 0 100%/36% 68%,
-        var(--g) 27% 18%/26% 40%, linear-gradient(#000 0 0) bottom/67% 58% no-repeat;
+  mask:
+    var(--g) 100% 100%/30% 60%,
+    var(--g) 70% 0/50% 100%,
+    var(--g) 0 100%/36% 68%,
+    var(--g) 27% 18%/26% 40%,
+    linear-gradient(#000 0 0) bottom/67% 58% no-repeat;
   background: #ffffff;
   opacity: 0.4;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   bottom: 20px;
+  z-index: 1;
 }
 
 .cloud--left {
@@ -189,39 +216,75 @@ canvas {
   bottom: 420px;
 }
 
-.platform {
-  position: absolute;
-  background: #f0e6ff;
-  border: 2px solid #8a5fc9;
-  border-radius: 2px;
-}
-
-
 .score-popup {
   position: absolute;
   color: #ffd76e;
   font-weight: bold;
   font-size: 18px;
+
   text-shadow: 1px 1px 0 #5b2f8a;
+
   pointer-events: none;
+
   animation: floatUp 0.6s ease-out forwards;
+
+  z-index: 2;
+}
+
+/* ============================================================
+   MUTTERING
+   ============================================================ */
+
+.muttering {
+  position: absolute;
+
+  color: #ffd76e;
+  font-weight: bold;
+  font-size: 18px;
+
+  text-shadow: 1px 1px 0 #5b2f8a;
+
+  pointer-events: none;
+
+  animation: floatUp 4s ease-out forwards;
+
   z-index: 2;
 }
 
 @keyframes floatUp {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-30px); opacity: 0; }
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
 }
 
-/* Shake animation */
 .stage.shake {
   animation: shake 0.3s ease;
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-6px); }
-  40% { transform: translateX(6px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
+  0%, 100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-6px);
+  }
+
+  40% {
+    transform: translateX(6px);
+  }
+
+  60% {
+    transform: translateX(-4px);
+  }
+
+  80% {
+    transform: translateX(4px);
+  }
 }

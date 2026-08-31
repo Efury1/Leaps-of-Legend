@@ -412,7 +412,7 @@ function drawMenu() {
   drawTtle('Leaps of Legend', 100);
 
   drawTxtParchment(
-    'Climb platform to platform and reach the princess. Two scores track your progress:',
+    'Climb platform to platform and reach the princess.',
     cavs.width / 2,
     150,
     '18px Trebuchet MS',
@@ -522,7 +522,7 @@ drawMenu();
 // ============================================================
 // DISPLAY HELPERS
 // ============================================================
-function updateScoreDisplay() {
+function updScoreDisplay() {
   document.querySelector('.topbar div:last-child').textContent =
     'Climb: ' + clibScore + '/' + PRIN_SCR_THRES + '   Alicorn Points: ' + aliPoints;
 }
@@ -668,7 +668,7 @@ function resetGame() {
     removed.element.remove();
   }
 
-  updateScoreDisplay();
+  updScoreDisplay();
   updLvesDisplay();
 }
 
@@ -771,7 +771,7 @@ function cckLand() {
     clibScore++;
     newPlatSpawned = false;
     nxtSpawnY = landedPlatform.y;
-    updateScoreDisplay();
+    updScoreDisplay();
     updteSkyForHght();
 
     // Landing flash
@@ -861,12 +861,12 @@ function cckPtnColl() {
       // Bubble active: potion is neutralized into a bonus point instead.
       aliPoints++;
       pyBlip(880, 0.15);
-      updateScoreDisplay();
+      updScoreDisplay();
       showScorePopup(potion.x, potion.y - cmaOffset);
     } else {
       aliPoints--;
       pyBlip(200, 0.2);
-      updateScoreDisplay();
+      updScoreDisplay();
       showLossPopup(potion.x, potion.y - cmaOffset);
     }
 
