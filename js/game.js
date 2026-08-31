@@ -52,6 +52,7 @@ let facingRight = true; // flips the sprite when moving left
 
 let verticalOffset = 0;   // how far the player has moved from the floor line (negative = up) 
 let verticalVelocity = 0; // current vertical speed (negative = moving up, positive = falling)
+let canDoubleJump = false;
 
 let currentPlatform = null; // the platform object the player is standing on (if any)
 let cameraOffset = 0;       // how far the camera has scrolled up as the player climbs
@@ -114,6 +115,7 @@ function checkForFloorHit() {
     verticalVelocity = 0;
     currentPlatform = null;
     wasFalling = false;
+    canDoubleJump = true;
   } else {
     wasFalling = true;
   }
@@ -474,7 +476,7 @@ function drawMenu() {
   drawTextOnParchment('Falling costs a life 🌈, lose all 3 and it\'s over', canvas.width / 2, 350, '15px Trebuchet MS');
 
   // Controls, grouped separately from the rules above.
-  drawTextOnParchment('← → move   ↑ jump   Shift talk to unicorn', canvas.width / 2, 400, '15px Trebuchet MS');
+  drawTextOnParchment('← → move   ↑ jump   Shift talk to unicorn', canvas.width / 2, 344, '15px Trebuchet MS');
 
   drawMenuButton('Play', 420);
 
@@ -621,6 +623,11 @@ function keyDownHandler(event) {
       currentPlatform = null; // jumping off whatever we were standing on
       playBlip(660, 0.1); // jump sound
     }
+    else if(verticalVelocity !== 0 && canDoubleJump === true) {
+      verticalVelocity = -15;
+      playBlip(660, 0.1);
+      canDoubleJump = false;
+    }
   }
   else if (event.key == 'Shift' || event.shiftKey) {
      bubble();
@@ -744,6 +751,7 @@ function checkForLanding() {
   const newTop = FLOOR_Y + playerY;
   let landedPlatform = null;
 
+
   platforms.forEach(platform => {
     const pastLeftEdge = playerX > platform.x;
     const beforeRightEdge = playerX < platform.x + platform.width;
@@ -766,9 +774,11 @@ function checkForLanding() {
   if (!landedPlatform) return;
 
   // Snap the player exactly onto the platform's surface.
+  // Everything after this only runs when a landing occurs
   verticalOffset = landedPlatform.y - FLOOR_Y;
   verticalVelocity = 0;
   currentPlatform = landedPlatform;
+  canDoubleJump = true; //fires after landing
 
   // Only counts as scoring progress the first time a NEW highest
   // platform is reached, so re-landing on old platforms doesn't
