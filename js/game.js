@@ -1,22 +1,23 @@
 // ============================================================
-// Constants and variables 
+// Constants and variables
 // ============================================================
 const MOVEMENT_SPEED = 7;           // pixels per frame the unicorn moves left/right
 const GRAVITY = 0.7;                // how fast falling speed increases each frame
 const FLOOR_Y = 630;                // the y position of the ground in screen space
-const UNICORN_HEIGHT = 16;          // used to line the sprite up with its feet, not its top-left corner
+const UNICORN_HEIGHT = 16; // used to line the sprite up with its feet, not its top-left corner
 const CAMERA_MIDDLE = 350;          // once the player passes this height, the camera starts following them
 const MOVING_PLATFORM_CHANCE_MAX = 0.6; // 60% chance a newly spawned platform moves
 const MOVING_PLATFORM_SPEED = 2;    // pixels per frame moving platforms slide
 const POTION_SPAWN_CHANGE = 0.5; // 50% change a potion spawns with a new platofmr
 let level = 1; // Increase each time we pass a level
-let alicornPoints = 0; 
+let alicornPoints = 0; // ONLY from potions — the "extra" points that carry over between levels, never reset
+let climbScore = 0;    // per-level counter of NEW platform landings only — resets each level, this is what the princess threshold checks
 
 // Music CONFIG
-let audioCtx = null;                // Web Audio context, created only once the player presses Play
-let musicRepeatTimer = null;        // handle for the setTimeout that loops the tune
+let audioCtx = null; // Web Audio context, created only once the player presses Play
+let musicRepeatTimer = null; // handle for the setTimeout that loops the tune
 const GAME_TUNE = "cefhjhfec000fhjlmljhjhfec000"; // each letter is a note, '0' is a rest
-const GAME_NOTE_LEN = 0.25;         // seconds per note
+const GAME_NOTE_LEN = 0.25;
 
 // ============================================================
 // DOM REFERENCES
@@ -28,39 +29,30 @@ canvas.height = 700;
 
 const unicornEl = document.getElementById('unicorn'); // the actual player sprite, a positioned <div>
 
-// If unicorn.png 404s, swap in an emoji so the game still works
-// even without the image asset.
 const unicornImg = new Image();
-unicornImg.onerror = () => {
-  unicornEl.style.backgroundImage = 'none';
-  unicornEl.textContent = '🦄';
-  unicornEl.style.fontSize = '16px';
-  unicornEl.style.lineHeight = '16px';
-  unicornEl.style.textAlign = 'center';
-};
 unicornImg.src = 'unicorn.png';
 
 // ============================================================
 // GAME STATE
 // ============================================================
 // gameState controls which "screen" is active: 'menu', 'playing',
-// 'gameover', or 'winning'. 
+// 'gameover', or 'winning'.
 let gameState = 'menu';
 
 let playerX = 450;      // player's horizontal position in world space
 let playerY = 0;        // player's vertical position, mirrors verticalOffset
 let facingRight = true; // flips the sprite when moving left
 
-let verticalOffset = 0;   // how far the player has moved from the floor line (negative = up) 
+let verticalOffset = 0;   // how far the player has moved from the floor line (negative = up)
 let verticalVelocity = 0; // current vertical speed (negative = moving up, positive = falling)
 let canDoubleJump = false;
 
 let currentPlatform = null; // the platform object the player is standing on (if any)
 let cameraOffset = 0;       // how far the camera has scrolled up as the player climbs
 
-let lives = 3;                    // shown as rainbow emoji, lost when you fall to the floor
+let lives = 3; // shown as rainbow emoji, lost when you fall to the floor
 let highestPlatformY = Infinity;  // tracks the highest platform reached, we need this for scoring/sky/spawning
-let wasFalling = false;           // used to tell "still standing on the floor" apart from "just landed hard"
+let wasFalling = false; // used to tell "still standing on the floor" apart from "just landed hard"
 
 let nextSpawnY = 260;         // once the highest platform reaches this height, we want to spawn a new one above it
 let newPlatformSpawned = false; // guards against spawning multiple platforms for the same climb
@@ -106,7 +98,7 @@ function checkForFloorHit() {
     if (wasFalling) {
       lives--;
       updateLivesDisplay();
-      playBlip(220, 0.3); // sound + screen shake on losing a life 
+      playBlip(220, 0.3); // sound + screen shake on losing a life
       const stage = document.querySelector('.stage');
       stage.classList.add('shake');
       setTimeout(() => stage.classList.remove('shake'), 300);
@@ -125,7 +117,6 @@ function checkForFloorHit() {
 // ============================================================
 // Potions
 // ============================================================
-// Potions are bar to pickup
 // Using 'let' because we reassign this array
 // whenever we filter a collected potion out of it.
 let potions = [];
@@ -150,14 +141,12 @@ const bubbleEl = document.createElement('div');
 
 let bubbleTimeout = null; // handle for the auto-hide timer, null when no bubble is active
 
-// Hides the bubble and clears the timer handle so bubble() disappears
 function removeBubble() {
   bubbleEl.remove();
   bubbleTimeout = null;
 }
 
 function bubble() {
-    const newBubble = FLOOR_Y + playerY;
     bubbleEl.className = 'bubbleEl';
     document.querySelector('.stage').appendChild(bubbleEl);
 
@@ -168,14 +157,12 @@ function bubble() {
       bubbleEl.appendChild(dot);
     }
 
-    // If Shift is pressed again while a bubble is already showing,
-    // clear the earlier timer first. Otherwise the FIRST timer
+    // Restart the auto-hide timer if a bubble is already showing.
     if (bubbleTimeout) {
       clearTimeout(bubbleTimeout);
     }
 
     bubbleTimeout = setTimeout(() => {
-      console.log('removeBubble firing');
       removeBubble();
     }, 5000);
 }
@@ -202,16 +189,10 @@ princessEl.style.position = 'absolute';
 princessEl.style.display = 'none';
 document.querySelector('.stage').appendChild(princessEl);
 
-// Same 404-fallback pattern as the unicorn: try an image, fall
-// back to an emoji if it's missing.
 const princessImg = new Image();
 princessImg.onload = () => {
   princessEl.style.backgroundImage = "url('princess1.png')";
   princessEl.style.backgroundRepeat = 'no-repeat';
-};
-princessImg.onerror = () => {
-  princessEl.textContent = '👸';
-  princessEl.style.fontSize = '28px';
 };
 princessImg.src = 'princess.png';
 
@@ -243,7 +224,7 @@ function checkForPrincessCollection() {
   };
 
   if (isTouching(unicorn, object)) {
-    if (alicornPoints >= 15) {
+    if (climbScore >= PRINCESS_SCORE_THRESHOLD) {
       level++;
       gameState = 'winning';
       drawWinningMenu();
@@ -348,9 +329,9 @@ function stopMusic() {
   }
 }
 
-// Reuses the music's audio context ---
-// Plays a single soft tone. Only fires once music has started (audioCtx
-// exists), so jump/land sounds before Play is pressed just get skipped.
+// Plays a single soft tone, reusing the music's audio context. Only
+// fires once music has started (audioCtx exists), so jump/land sounds
+// before Play is pressed just get skipped.
 function playBlip(freq, duration = 0.12) {
   if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
@@ -432,10 +413,9 @@ function drawTextOnParchment(text, centerX, centerY, font) {
     '#5b2f8a'
   );
 
-  // Draw the text on top of the box.
   ctx.fillStyle = '#6b2f8f';
   ctx.textAlign = 'center';
-  
+
   ctx.fillText(text, centerX, centerY + 7); // +7 nudges the baseline down to sit inside the box
 }
 
@@ -443,7 +423,6 @@ function drawLinesOnParchment(text, centerX, centerY, font) {
   ctx.font = font;
   const lineHeight = 25;
   const padding = 20;
-  // Text width is horizonal, its how wide one line of text is
   const textWidth = Math.max(...lines.map((line) => ctx.measureText(line).width));
   const textHeight = lines.length * lineHeight;
 
@@ -457,11 +436,9 @@ function drawLinesOnParchment(text, centerX, centerY, font) {
     '#5b2f8a'
   );
 
-  // Draw the text on top of the box.
   ctx.fillStyle = '#6b2f8f';
   ctx.textAlign = 'center';
 
-  // 25 is the line hieght in pixels aka how far apart each line sites
   lines.forEach((line, index) => {
     ctx.fillText(line, centerX, centerY + 7 + (index * 25));
   });
@@ -477,14 +454,14 @@ function drawMenuButton(label, y) {
   ctx.fillText(label, canvas.width / 2, y + 32);
 }
 
-// array of strings
 const lines = [
-  '+1 Alicorn Point, drawn from the horn\'s healing magic, said to cure any curse',
-  '-1 point per potion 🧪, brewed by the wizard who cursed her in the first place',
+  'Two separate scores: your CLIMB and your ALICORN POINTS',
+  'Climb: +1 per new platform reached, resets every level, must hit 15 to reveal the princess',
+  'Alicorn Points: +1 or -1 per potion 🧪, carries over between levels, never resets',
   'Shift = conjure a bubble, potions can\'t touch what\'s inside',
-  'Reach 15 points, enough horn-magic gathers to break the curse',
   'Falling costs a life 🌈, even legends have bad landings'
 ];
+
 // The main menu screen: title, goal, scoring rules, controls, and
 // the Play button. Also hides all the DOM platforms/princess
 // so they don't show through behind the canvas menu.
@@ -499,23 +476,18 @@ function drawMenu() {
   drawMagicalBackground();
   drawTitle('Leaps of Legend', 100);
 
-  // Goal, stated up front in one line.
   drawTextOnParchment(
-    'Climb platform to platform and reach the princess.',
+    'Climb platform to platform and reach the princess. Two scores track your progress:',
     canvas.width / 2,
     150,
     '18px Trebuchet MS',
   );
 
-
   drawLinesOnParchment(lines, canvas.width / 2, 200, '15px Trebuchet MS');
 
-  // Controls, grouped separately from the rules above.
   drawTextOnParchment('← → move  |  ↑ jump or double jump | Shift: to have protective bubble', canvas.width / 2, 350, '15px Trebuchet MS');
 
   drawMenuButton('Play', 420);
-
-  // Hide characters and objects until game starts
 
   platforms.forEach(platform => {
     platform.element.style.display = 'none';
@@ -529,7 +501,7 @@ function drawMenu() {
 }
 
 // Shown when the player reaches the princess with enough points.
-// Its "Play again" button is drawn at y = 340 — handleClick checks
+// Its "Play again" button is drawn at y = 390 — handleClick checks
 // this same value for gameState === 'winning'.
 function drawWinningMenu() {
   unicornEl.style.display = 'none';
@@ -550,12 +522,12 @@ function drawWinningMenu() {
     300,
     '20px Trebuchet MS',
   );
-  
+
   drawTextOnParchment(
-    'Level ' + level + ' begins now.',
+    'Level ' + level + ' begins now. Alicorn Points carried over: ' + alicornPoints,
     canvas.width / 2,
     340,
-    '18px Trebuchet MS',
+    '16px Trebuchet MS',
   );
 
   drawMenuButton('Play ' + level, 390);
@@ -572,7 +544,7 @@ function drawWinningMenu() {
 }
 
 // Shown when lives reach 0. Its "Play again" button is also at
-// y = 320 — handleClick checks this same value for gameState === 'gameover'.
+// y = 340 — handleClick checks this same value for gameState === 'gameover'.
 function drawGameOverMenu() {
   unicornEl.style.display = 'none';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -583,9 +555,11 @@ function drawGameOverMenu() {
   ctx.fillStyle = '#ffe6f5';
   ctx.font = '24px Trebuchet MS';
   ctx.textAlign = 'center';
-  ctx.fillText('Alicorn Score: ' + alicornPoints, canvas.width / 2, 280);
+  ctx.fillText('Climb: ' + climbScore + ' / ' + PRINCESS_SCORE_THRESHOLD, canvas.width / 2, 280);
+  ctx.font = '18px Trebuchet MS';
+  ctx.fillText('Alicorn Points: ' + alicornPoints, canvas.width / 2, 310);
 
-  drawMenuButton('Play again', 320);
+  drawMenuButton('Play again', 340);
 
   platforms.forEach(platform => {
     platform.element.style.display = 'none';
@@ -621,15 +595,15 @@ drawMenu(); // show the menu as soon as everything above is ready
 // These update the plain-HTML topbar (score/lives), separate from
 // the canvas-drawn menus above.
 function updateScoreDisplay() {
-  document.querySelector('.topbar div:last-child').textContent = 'Alicorn Points: ' + alicornPoints;
+  document.querySelector('.topbar div:last-child').textContent =
+    'Climb: ' + climbScore + '/' + PRINCESS_SCORE_THRESHOLD + '   Alicorn Points: ' + alicornPoints;
 }
 
 function updateLivesDisplay() {
   document.querySelector('.rainbows').textContent = '🌈'.repeat(lives);
 }
 
-// The floating "+1" score popup 
-// Spawns a short-lived DOM element at a given screen position and
+// Spawns a short-lived "+1" popup at a given screen position and
 // lets the CSS animation (floatUp) fade/rise it, then removes itself.
 function showScorePopup(x, y) {
   const el = document.createElement('div');
@@ -662,7 +636,6 @@ function showMutteringPopup(x, y) {
   setTimeout(() => el.remove(), 40000);
 }
 
-
 // ============================================================
 // INPUT
 // ============================================================
@@ -680,11 +653,11 @@ function handleClick(event) {
   // whatever y value that screen's drawMenuButton() call used above:
   //   drawMenu()          -> 420
   //   drawWinningMenu()   -> 390
-  //   drawGameOverMenu()  -> 320
+  //   drawGameOverMenu()  -> 340
   const buttonY =
     gameState === 'menu' ? 420 :
     gameState === 'winning' ? 390 :
-    320; // gameover
+    340; // gameover
 
   const buttonX = canvas.width / 2 - 70, buttonW = 140, buttonH = 50;
   const clickedButton =
@@ -693,8 +666,8 @@ function handleClick(event) {
 
   if (!clickedButton) return;
 
-  // Only reset progress when coming from a game-over screen. Winning
-  // and the very first menu don't need a reset before starting play.
+  // Reset progress before starting a new run, whether coming from
+  // game over or a win. The very first menu doesn't need a reset.
   if (gameState === 'gameover' || gameState === 'winning') {
     resetGame();
   }
@@ -703,7 +676,6 @@ function handleClick(event) {
   playTune(GAME_TUNE, GAME_NOTE_LEN);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Interval for muttering
   setInterval(() => showMutteringPopup(playerX, FLOOR_Y + playerY - cameraOffset - UNICORN_HEIGHT - 20), 20000);
 
   platforms.forEach(platform => {
@@ -717,7 +689,7 @@ function handleClick(event) {
   if (princessRevealed) {
     princessEl.style.display = 'block';
   }
-  
+
   update();
 }
 
@@ -734,7 +706,7 @@ function keyDownHandler(event) {
     if (verticalVelocity === 0) {
       verticalVelocity = -15;
       currentPlatform = null; // jumping off whatever we were standing on
-      playBlip(660, 0.1); // jump sound
+      playBlip(660, 0.1);
     }
     else if(verticalVelocity !== 0 && canDoubleJump === true) {
       verticalVelocity = -15;
@@ -766,7 +738,10 @@ function resetGame() {
   verticalOffset = 0;
   verticalVelocity = 0;
   currentPlatform = null;
-  alicornPoints = 0;
+
+  // alicornPoints is NOT reset here — it's a persistent running total
+  // that keeps adding on across levels (and even after a game over).
+  climbScore = 0; // per-level gate resets so the princess needs 15 fresh climbs again
   lives = 3;
   highestPlatformY = Infinity;
   wasFalling = false;
@@ -791,6 +766,7 @@ function resetGame() {
   updateScoreDisplay();
   updateLivesDisplay();
 }
+
 // ============================================================
 // Objects
 // ============================================================
@@ -831,7 +807,6 @@ function update() {
   }
 
   if (gameState === 'winning') {
-
     stopMusic();
     drawWinningMenu();
     return; // stop the loop, the winning screen takes over
@@ -841,9 +816,8 @@ function update() {
   renderPlayerAndPlatforms();
   applyMovementInput();
 
-  requestAnimationFrame(update); // schedule the next frame
+  requestAnimationFrame(update);
 }
-// END OF UPDATE MAIN LOOP
 
 // If the player isn't standing on a platform, gravity pulls them
 // down: velocity increases each frame, and offset accumulates it.
@@ -865,7 +839,7 @@ function checkStillOnCurrentPlatform() {
     playerX > currentPlatform.x && playerX < currentPlatform.x + currentPlatform.width;
 
   if (!stillOnPlatform) {
-    currentPlatform = null; // walked off the edge, start falling again
+    currentPlatform = null;
   } else if (currentPlatform.isMoving === true) {
     playerX += MOVING_PLATFORM_SPEED * currentPlatform.moveDirection;
   }
@@ -880,7 +854,6 @@ function checkForLanding() {
 
   const newTop = FLOOR_Y + playerY;
   let landedPlatform = null;
-
 
   platforms.forEach(platform => {
     const pastLeftEdge = playerX > platform.x;
@@ -908,14 +881,14 @@ function checkForLanding() {
   verticalOffset = landedPlatform.y - FLOOR_Y;
   verticalVelocity = 0;
   currentPlatform = landedPlatform;
-  canDoubleJump = true; //fires after landing
+  canDoubleJump = true;
 
   // Only counts as scoring progress the first time a NEW highest
   // platform is reached, so re-landing on old platforms doesn't
   // rack up extra points.
   if (landedPlatform.y < highestPlatformY) {
     highestPlatformY = landedPlatform.y;
-    alicornPoints++;
+    climbScore++;
     newPlatformSpawned = false;
     nextSpawnY = landedPlatform.y;
     updateScoreDisplay();
@@ -925,13 +898,13 @@ function checkForLanding() {
     unicornEl.style.filter = 'brightness(1.6)';
     setTimeout(() => { unicornEl.style.filter = ''; }, 120);
 
-    // landing sound 
     playBlip(880, 0.15);
 
-    // popup score
     showScorePopup(playerX, FLOOR_Y + playerY - cameraOffset - UNICORN_HEIGHT - 20);
 
-    if (alicornPoints === PRINCESS_SCORE_THRESHOLD && !princessRevealed) {
+    // Princess appears from this level's real climb progress only —
+    // potion bonuses can't trigger this, and it resets each level.
+    if (climbScore === PRINCESS_SCORE_THRESHOLD && !princessRevealed) {
       revealPrincessPlatform();
     }
   }
@@ -953,7 +926,7 @@ function moveMovingPlatforms() {
     const hitLeftEdge = platform.x <= 0;
     const hitRightEdge = platform.x + platform.width >= canvas.width;
     if (hitLeftEdge || hitRightEdge) {
-      platform.moveDirection *= -1; // reverse direction
+      platform.moveDirection *= -1;
     }
     platform.element.style.left = platform.x + 'px';
   });

@@ -49,16 +49,25 @@ canvas {
   align-items: center;
   font-size: 15px;
   font-weight: bold;
-  justify-content: center;
+  justify-content: space-between;
   display: flex;
   color: #8a2f6b;
   margin: 10px;
+  padding: 0 12px;
   border: 2px solid #5b2f8a;
+  gap: 12px;
+  box-sizing: border-box;
 }
 
 .text {
   position: relative;
-  margin-right: 10px;
+  white-space: nowrap;
+}
+
+.score {
+  position: relative;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .sky__space {
@@ -98,11 +107,11 @@ canvas {
 }
 
 .rainbows {
-  position: absolute;
-  right: 10px;
   display: flex;
   flex-direction: row;
+  align-items: center;
   font-size: 20px;
+  flex-shrink: 0;
 }
 
 /* This could of been done with sprite spliting */
