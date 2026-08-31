@@ -48,3 +48,56 @@ Takeaway: 120px is the highest the jump can go. 90px was picked in practice, sin
 - `requestAnimationFrame()` tells the browser you want to run an animation.
 - Gravity is a plain number (a scalar). Velocity is a vector, it has direction and speed.
 - Adding gravity each frame adds to the velocity vector.
+
+30/08/2026
+- Add double jump
+- Make sure poision and bubble don't appear on menu
+- Make sure poision disapears when it is hit with bubble
+- If user gets to 15 and they don't have points do game over
+
+31/08/2026
+Double jump
+- We track whether a jump in reserve wiht canDoubleJump
+- set canDoubleJump = true in checkForlanding and checkForFloorHit, that way a third jump is blocked
+- The else if (verticalVelocity !== 0 && canDpubleJump === true) branch allows you to jump, then blocks third jump
+
+Updating Menu
+- fillText does not wrap text. It draws exactly the string you give it. Therefore we needed to do an array of strings
+- We needed to do a foreach for lines. Each lines needs to be +25 from the last
+- For const textWidth = ctx.measureText(text).width we are calling lines inside, but .measureText() on soemthign isn't a string. Therefore, JS coercces it to a string first joinging all 4 lines together without commas into one giant string, then measure the width of that, so that needs to be fixed. That has been done now we need to do it for the hiehgt
+
+Todo
+- Have a better starting screen
+- Have text that writes out one by one explaining the story before playing
+- Have 3 levels
+- level 2 has platform that can break
+- level 3 has falling platforms as well 
+
+- In top menu put
+- Princess status: presumary fine
+- Moods should change with lives, if it is one life do hooves sore
+
+- Instead of winning put
+- You have achieved: Platonic Ideal of Jumping. The princess weeps with gratitude... and word travels fast. Other princesses have heard about you. They're calling. They need a hero. Or at least someone who can jump good. Go to level 2
+- Level 3 end screen. The Princess is rescued, deeply confused about the falling potions situation. Word has now reached the whole kingdom. Every princess who has ever needed rescuing is doing fine. You have officially achieved: Main Character Energy. There is nothing left to jump toward. You have peaked.
+
+Play again screen:
+-Alicorn Points: [score] (a solid effort, statistically speaking)
+- Instead of play again do: One more jump
+
+- Screen after pressing play
+Legend says the unicorn's horn, the alicorn, can cure any curse. Unfortunately, horn magic doesn't just appear, it has to be earned, one questionable platform jump at a time. Time to prove it.
+
+- Unicorns should mutter when playing. something lieke what is below. Could tie this to the bubble mechanism. 
+
+const unicornMutterings = [
+  'Ugh, why is this so hard',
+  'Why is the princess all the way up there',
+  'Nobody said anything about this many stairs',
+  'I am a MAGICAL creature, not a mountain goat',
+  'This horn better be worth it',
+  'Whose idea was this curse anyway',
+  'I could be grazing right now',
+  'Is this really the only way to cure a curse',
+  'Cool cool cool, more platforms, love that for me'
+];

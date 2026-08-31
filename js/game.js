@@ -9,6 +9,8 @@ const CAMERA_MIDDLE = 350;          // once the player passes this height, the c
 const MOVING_PLATFORM_CHANCE_MAX = 0.6; // 60% chance a newly spawned platform moves
 const MOVING_PLATFORM_SPEED = 2;    // pixels per frame moving platforms slide
 const POTION_SPAWN_CHANGE = 0.5; // 50% change a potion spawns with a new platofmr
+let level = 1; // Increase each time we pass a level
+let alicornPoints = 0; 
 
 // Music CONFIG
 let audioCtx = null;                // Web Audio context, created only once the player presses Play
@@ -56,7 +58,6 @@ let canDoubleJump = false;
 let currentPlatform = null; // the platform object the player is standing on (if any)
 let cameraOffset = 0;       // how far the camera has scrolled up as the player climbs
 
-let alicornPoints = 0;            // Points in topbar
 let lives = 3;                    // shown as rainbow emoji, lost when you fall to the floor
 let highestPlatformY = Infinity;  // tracks the highest platform reached, we need this for scoring/sky/spawning
 let wasFalling = false;           // used to tell "still standing on the floor" apart from "just landed hard"
@@ -243,6 +244,7 @@ function checkForPrincessCollection() {
 
   if (isTouching(unicorn, object)) {
     if (alicornPoints >= 15) {
+      level++;
       gameState = 'winning';
       drawWinningMenu();
     }
@@ -536,13 +538,27 @@ function drawWinningMenu() {
   drawMagicalBackground();
   drawTitle('Leaps of Legend', 170);
   drawTextOnParchment(
-    'The princess is alive because of you, you won.',
+    'The princess weeps with gratitude. word travels fast.',
     canvas.width / 2,
     250,
     '20px Trebuchet MS',
   );
 
-  drawMenuButton('Play again', 340);
+  drawTextOnParchment(
+    'People need a hero. Or at least someone who can jump good',
+    canvas.width / 2,
+    300,
+    '20px Trebuchet MS',
+  );
+  
+  drawTextOnParchment(
+    'Level ' + level + ' begins now.',
+    canvas.width / 2,
+    340,
+    '18px Trebuchet MS',
+  );
+
+  drawMenuButton('Play ' + level, 390);
 
   platforms.forEach(platform => {
     platform.element.style.display = 'none';
@@ -663,11 +679,11 @@ function handleClick(event) {
   // Each screen draws its button at a different y — this must match
   // whatever y value that screen's drawMenuButton() call used above:
   //   drawMenu()          -> 420
-  //   drawWinningMenu()   -> 340
+  //   drawWinningMenu()   -> 390
   //   drawGameOverMenu()  -> 320
   const buttonY =
     gameState === 'menu' ? 420 :
-    gameState === 'winning' ? 340 :
+    gameState === 'winning' ? 390 :
     320; // gameover
 
   const buttonX = canvas.width / 2 - 70, buttonW = 140, buttonH = 50;
@@ -679,7 +695,7 @@ function handleClick(event) {
 
   // Only reset progress when coming from a game-over screen. Winning
   // and the very first menu don't need a reset before starting play.
-  if (gameState === 'gameover') {
+  if (gameState === 'gameover' || gameState === 'winning') {
     resetGame();
   }
 
@@ -755,10 +771,20 @@ function resetGame() {
   highestPlatformY = Infinity;
   wasFalling = false;
   cameraOffset = 0;
+
+  princessRevealed = false;
+  princessPlatform.element.style.display = 'none';
+
+  // Remove every platform beyond the original three starting platforms,
+  // including their DOM elements, so a new level starts with a clean climb.
+  while (platforms.length > 3) {
+    const removed = platforms.pop();
+    removed.element.remove();
+  }
+
   updateScoreDisplay();
   updateLivesDisplay();
 }
-
 // ============================================================
 // Objects
 // ============================================================
@@ -799,6 +825,7 @@ function update() {
   }
 
   if (gameState === 'winning') {
+
     stopMusic();
     drawWinningMenu();
     return; // stop the loop, the winning screen takes over
@@ -934,7 +961,8 @@ function maybeSpawnNewPlatform() {
   if (nextSpawnY > 280 || newPlatformSpawned) return;
   if (princessRevealed) return; // stop generating once the princess platform exists
 
-  const width = 160;
+  // Platforms shrink as your climb
+  const width = Math.max(70, 160 - Math.floor((600 - highestPlatformY) / 20) - (level - 1) * 15);
   const height = 12;
   const maxX = canvas.width - width;
   const x = Math.floor(Math.random() * maxX);
@@ -945,7 +973,7 @@ function maybeSpawnNewPlatform() {
 
   // Adding isMoving/moveDirection onto this same object — it's the
   // same shape platforms.forEach() elsewhere already checks for.
-  if (isHighEnoughForDifficultyIncrease && Math.random() < MOVING_PLATFORM_CHANCE_MAX) {
+  if (isHighEnoughForDifficultyIncrease && Math.random() < MOVING_PLATFORM_CHANCE_MAX + (level - 1) * 0.1) {
     newPlatform.isMoving = true;
     newPlatform.moveDirection = Math.random() < 0.5 ? 1 : -1;
   }
