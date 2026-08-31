@@ -8,6 +8,7 @@ const UNICORN_HEIGHT = 16;          // used to line the sprite up with its feet,
 const CAMERA_MIDDLE = 350;          // once the player passes this height, the camera starts following them
 const MOVING_PLATFORM_CHANCE_MAX = 0.6; // 60% chance a newly spawned platform moves
 const MOVING_PLATFORM_SPEED = 2;    // pixels per frame moving platforms slide
+const POTION_SPAWN_CHANGE = 0.5; // 50% change a potion spawns with a new platofmr
 
 // Music CONFIG
 let audioCtx = null;                // Web Audio context, created only once the player presses Play
@@ -320,7 +321,7 @@ function playTune(str, noteLen) {
       osc.frequency.setValueAtTime(freq, startTime);
 
       // Quick attack, quick decay, so notes don't bleed into each other.
-      masterGain.gain.setValueAtTime(0.5, startTime);
+      masterGain.gain.setValueAtTime(0.1, startTime); // Lowered to 2, so not as loud
       masterGain.gain.setTargetAtTime(0.001, startTime + 0.1, 0.05);
 
       osc.start(startTime);
@@ -438,15 +439,17 @@ function drawTextOnParchment(text, centerX, centerY, font) {
 
 function drawLinesOnParchment(text, centerX, centerY, font) {
   ctx.font = font;
+  const lineHeight = 25;
+  const padding = 20;
   // Text width is horizonal, its how wide one line of text is
   const textWidth = Math.max(...lines.map((line) => ctx.measureText(line).width));
-  // const textWidth = ctx.measureText(text).width;
+  const textHeight = lines.length * lineHeight;
 
   drawRoundedRect(
-    centerX - textWidth / 2 - 20,
-    centerY - 20,
-    textWidth + 40,
-    lines.length * 25, // The box bottom edge needs to grow to fit text
+    centerX - textWidth / 2 - padding,
+    centerY - padding,
+    textWidth + padding * 2,
+    textHeight + padding, // The box bottom edge needs to grow to fit text
     10,
     '#ffe6f5',
     '#5b2f8a'
@@ -474,12 +477,12 @@ function drawMenuButton(label, y) {
 
 // array of strings
 const lines = [
-  '+1 point per new platform reached',
-  '-1 point for touching a potion 🧪',
-  'Reach 15 points to reveal the princess',
-  'Falling costs a life 🌈, lose all 3 and it\'s over'
+  '+1 Alicorn Point, drawn from the horn\'s healing magic, said to cure any curse',
+  '-1 point per potion 🧪, brewed by the wizard who cursed her in the first place',
+  'Shift = conjure a bubble, potions can\'t touch what\'s inside',
+  'Reach 15 points, enough horn-magic gathers to break the curse',
+  'Falling costs a life 🌈, even legends have bad landings'
 ];
-
 // The main menu screen: title, goal, scoring rules, controls, and
 // the Play button. Also hides all the DOM platforms/princess
 // so they don't show through behind the canvas menu.
@@ -506,7 +509,7 @@ function drawMenu() {
   drawLinesOnParchment(lines, canvas.width / 2, 200, '15px Trebuchet MS');
 
   // Controls, grouped separately from the rules above.
-  drawTextOnParchment('← → move   ↑ jump   Shift talk to unicorn', canvas.width / 2, 344, '15px Trebuchet MS');
+  drawTextOnParchment('← → move  |  ↑ jump or double jump | Shift: to have protective bubble', canvas.width / 2, 350, '15px Trebuchet MS');
 
   drawMenuButton('Play', 420);
 
@@ -579,6 +582,21 @@ function drawGameOverMenu() {
   princessEl.style.display = 'none';
 }
 
+const unicornMutterings = [
+  'Ugh, why is this so hard',
+  'Nobody said anything about this many stairs',
+  'I am a MAGICAL creature, not a mountain goat',
+  'Whose idea was this curse anyway',
+  'I could be grazing right now',
+  'Is this really the only way to cure a curse',
+  'Cool cool cool, more platforms, love that for me'
+];
+
+function pickRandomMuttering() {
+    const randomIndex = Math.floor(Math.random() * unicornMutterings.length);
+    return unicornMutterings[randomIndex];
+}
+
 drawMenu(); // show the menu as soon as everything above is ready
 
 // ============================================================
@@ -606,6 +624,28 @@ function showScorePopup(x, y) {
   document.querySelector('.stage').appendChild(el);
   setTimeout(() => el.remove(), 600);
 }
+
+function showLossPopup(x, y) {
+  const el = document.createElement('div');
+  el.className = 'score-popup';
+  el.textContent = '-1';
+  el.style.color = '#ff4d4d';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  document.querySelector('.stage').appendChild(el);
+  setTimeout(() => el.remove(), 600);
+}
+
+function showMutteringPopup(x, y) {
+  const el = document.createElement('div');
+  el.className = 'muttering';
+  el.textContent = pickRandomMuttering();
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  document.querySelector('.stage').appendChild(el);
+  setTimeout(() => el.remove(), 40000);
+}
+
 
 // ============================================================
 // INPUT
@@ -646,6 +686,9 @@ function handleClick(event) {
   gameState = 'playing';
   playTune(GAME_TUNE, GAME_NOTE_LEN);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Interval for muttering
+  setInterval(() => showMutteringPopup(playerX, FLOOR_Y + playerY - cameraOffset - UNICORN_HEIGHT - 20), 20000);
 
   platforms.forEach(platform => {
     platform.element.style.display = 'block';
@@ -719,7 +762,7 @@ function resetGame() {
 // ============================================================
 // Objects
 // ============================================================
-// Simple circle-vs-circle collision check shared by potions and
+// Circle-vs-circle collision check shared by potions and
 // the princess. unicorn.x is how far right, unicorn.y is how far down.
 function isTouching(unicorn, object) {
   const distanceX = unicorn.x - object.x;
@@ -909,7 +952,10 @@ function maybeSpawnNewPlatform() {
 
   platforms.push(newPlatform);
   createPlatformElement(newPlatform);
-  maybeSpawnNewPotion(newPlatform);
+
+  if (Math.random() < POTION_SPAWN_CHANGE) {
+    maybeSpawnNewPotion(newPlatform);
+  }
 
   newPlatformSpawned = true;
   nextSpawnY = y;
@@ -933,11 +979,7 @@ function maybeSpawnNewPotion(platform) {
 }
 
 // Checks whether the player is touching any potion. Skips scoring
-// entirely while the speech bubble is showing (bubbleEl.parentElement
-// is truthy whenever it's attached to the stage) — that's the
-// potion-immunity window, and it now correctly lasts 5 seconds from
-// the MOST RECENT Shift press thanks to the clearTimeout in bubble().
-// On a hit, the potion is removed from both the DOM and the array.
+// entirely while the speech bubble is showing 
 function checkForPotionCollection() {
   potions.forEach(potion => {
     const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12 };
@@ -948,7 +990,9 @@ function checkForPotionCollection() {
     }
     else if (isTouching(unicorn, object)) {
       alicornPoints--;
+      playBlip(200, 0.2); // show short blip
       updateScoreDisplay();
+      showLossPopup(potion.x, potion.y - cameraOffset);
       potion.element.remove();
       // forEach doesn't let you safely delete from the array
       // mid-loop, so filter() is used to build a fresh array
