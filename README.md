@@ -1,8 +1,9 @@
 # Leaps of Legend: 2026 Hackathon
 
 A browser game built for [js13kGames](https://js13kgames.com/), a web game development competition with a strict 13KB size limit.
-
 The 2026 jam runs from **13 August 13:00 CEST to 13 September 13:00 CEST**. This year's theme is **Unicorns and Rainbows**.
+
+Game Link: https://js13kgames.com/2026/games/leaps-of-legend
 
 ## Screenshots
 
