@@ -432,7 +432,34 @@ function drawTextOnParchment(text, centerX, centerY, font) {
   // Draw the text on top of the box.
   ctx.fillStyle = '#6b2f8f';
   ctx.textAlign = 'center';
+  
   ctx.fillText(text, centerX, centerY + 7); // +7 nudges the baseline down to sit inside the box
+}
+
+function drawLinesOnParchment(text, centerX, centerY, font) {
+  ctx.font = font;
+  // Text width is horizonal, its how wide one line of text is
+  const textWidth = Math.max(...lines.map((line) => ctx.measureText(line).width));
+  // const textWidth = ctx.measureText(text).width;
+
+  drawRoundedRect(
+    centerX - textWidth / 2 - 20,
+    centerY - 20,
+    textWidth + 40,
+    lines.length * 25, // The box bottom edge needs to grow to fit text
+    10,
+    '#ffe6f5',
+    '#5b2f8a'
+  );
+
+  // Draw the text on top of the box.
+  ctx.fillStyle = '#6b2f8f';
+  ctx.textAlign = 'center';
+
+  // 25 is the line hieght in pixels aka how far apart each line sites
+  lines.forEach((line, index) => {
+    ctx.fillText(line, centerX, centerY + 7 + (index * 25));
+  });
 }
 
 // Draws a clickable-looking button. The actual click detection
@@ -444,6 +471,14 @@ function drawMenuButton(label, y) {
   ctx.textAlign = 'center';
   ctx.fillText(label, canvas.width / 2, y + 32);
 }
+
+// array of strings
+const lines = [
+  '+1 point per new platform reached',
+  '-1 point for touching a potion 🧪',
+  'Reach 15 points to reveal the princess',
+  'Falling costs a life 🌈, lose all 3 and it\'s over'
+];
 
 // The main menu screen: title, goal, scoring rules, controls, and
 // the Play button. Also hides all the DOM platforms/princess
@@ -467,11 +502,8 @@ function drawMenu() {
     '18px Trebuchet MS',
   );
 
-  // Scoring rules, grouped together so cause -> effect is clear.
-  drawTextOnParchment('+1 point per new platform reached', canvas.width / 2, 200, '15px Trebuchet MS');
-  drawTextOnParchment('-1 point for touching a potion 🧪', canvas.width / 2, 250, '15px Trebuchet MS');
-  drawTextOnParchment('Reach 15 points to reveal the princess', canvas.width / 2, 300, '15px Trebuchet MS');
-  drawTextOnParchment('Falling costs a life 🌈, lose all 3 and it\'s over', canvas.width / 2, 350, '15px Trebuchet MS');
+
+  drawLinesOnParchment(lines, canvas.width / 2, 200, '15px Trebuchet MS');
 
   // Controls, grouped separately from the rules above.
   drawTextOnParchment('← → move   ↑ jump   Shift talk to unicorn', canvas.width / 2, 344, '15px Trebuchet MS');
@@ -614,12 +646,19 @@ function handleClick(event) {
   gameState = 'playing';
   playTune(GAME_TUNE, GAME_NOTE_LEN);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   platforms.forEach(platform => {
     platform.element.style.display = 'block';
   });
+
+  potions.forEach(potion => {
+    potion.element.style.display = 'block';
+  });
+
   if (princessRevealed) {
     princessEl.style.display = 'block';
   }
+  
   update();
 }
 
@@ -662,7 +701,7 @@ function keyUpHandler(event) {
 // ============================================================
 // Puts all the per-run state back to its starting values. Note
 // this does NOT remove already-spawned platforms/potions or hide
-// the princess — those persist between runs in this version.
+// the princess. Those persist between runs in this version.
 function resetGame() {
   playerX = 450;
   verticalOffset = 0;
