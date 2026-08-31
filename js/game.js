@@ -775,6 +775,12 @@ function resetGame() {
   princessRevealed = false;
   princessPlatform.element.style.display = 'none';
 
+  // Take the princess platform out of the array without delete
+  const princessIndex = platforms.indexOf(princessPlatform);
+  if (princessIndex !== -1) {
+    platforms.splice(princessIndex, 1);
+  }
+
   // Remove every platform beyond the original three starting platforms,
   // including their DOM elements, so a new level starts with a clean climb.
   while (platforms.length > 3) {
@@ -1006,27 +1012,31 @@ function maybeSpawnNewPotion(platform) {
   createPotionElement(newPotion);
 }
 
-// Checks whether the player is touching any potion. Skips scoring
-// entirely while the speech bubble is showing 
 function checkForPotionCollection() {
   potions.forEach(potion => {
     const unicorn = { x: playerX, y: FLOOR_Y + playerY, radius: 12 };
     const object = { x: potion.x, y: potion.y, radius: 12 };
 
+    if (!isTouching(unicorn, object)) return;
+
     if (bubbleEl.parentElement) {
-      return; // bubble active: immune to potions this frame
-    }
-    else if (isTouching(unicorn, object)) {
+      // Bubble active: potion is neutralized into a bonus point instead.
+      alicornPoints++;
+      playBlip(880, 0.15);
+      updateScoreDisplay();
+      showScorePopup(potion.x, potion.y - cameraOffset);
+    } else {
       alicornPoints--;
-      playBlip(200, 0.2); // show short blip
+      playBlip(200, 0.2);
       updateScoreDisplay();
       showLossPopup(potion.x, potion.y - cameraOffset);
-      potion.element.remove();
-      // forEach doesn't let you safely delete from the array
-      // mid-loop, so filter() is used to build a fresh array
-      // with the collected potion left out.
-      potions = potions.filter(p => p !== potion);
     }
+
+    potion.element.remove();
+    // forEach doesn't let you safely delete from the array
+    // mid-loop, so filter() is used to build a fresh array
+    // with the collected potion left out.
+    potions = potions.filter(p => p !== potion);
   })
 }
 
